@@ -143,18 +143,6 @@ This cross is commented out. When enabled it gives 4×3=12 bins covering every (
 
 ---
 
-## Code Coverage Gaps Analysis
-
-| Coverage Type | Gap Area | Root Cause | Sequences to Add |
-|---|---|---|---|
-| Line/Branch | _[fill from VCS report]_ | _[fill]_ | _[fill]_ |
-| FSM | _[e.g. W_BOTH→W_DATA slave FSM path]_ | Address+data arriving simultaneously always | Needs wait-state variation |
-| Toggle | _[fill]_ | _[fill]_ | _[fill]_ |
-
-> Extract exact gap details from `cov_report_merged/dashboard.html` and fill the table above.
-
----
-
 ## Coverage Exclusions
 
 | Signal / Block | Reason for Exclusion |

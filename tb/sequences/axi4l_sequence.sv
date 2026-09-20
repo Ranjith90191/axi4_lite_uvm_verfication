@@ -219,3 +219,43 @@ class axi4l_write_bug_seq extends uvm_sequence #(axi4l_seq_item);
     end
   endtask
 endclass
+
+class axi4l_full_rand_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(axi4l_full_rand_seq)
+
+  function new(string name="axi4l_full_rand_seq");
+    super.new(name);
+  endfunction
+
+  virtual task body();
+    axi4l_seq_item req;
+    repeat(3000) begin
+      req = axi4l_seq_item::type_id::create("req");
+      start_item(req);
+      assert(req.randomize() with {
+        txn_sel inside {2'b01, 2'b10};
+        AWADDR inside {[32'h00:32'h24]};
+        ARADDR inside {[32'h00:32'h24]};
+        AWADDR[1:0] == 2'b00;
+        ARADDR[1:0] == 2'b00;
+        WSTRB inside {4'b1111, 4'b1010, 4'b0101, 4'b0000, 4'b1100, 4'b0011};
+      });
+      finish_item(req);
+    end
+    repeat(1000) begin
+      req = axi4l_seq_item::type_id::create("req");
+      start_item(req);
+      assert(req.randomize() with {
+        txn_sel inside {2'b01, 2'b10};
+        if (txn_sel == 2'b01) {
+            (AWADDR[1:0] != 2'b00) || (AWADDR inside {32'h28, 32'h2C, 32'h30});
+            AWADDR < 32'h40;
+        } else {
+            (ARADDR[1:0] != 2'b00) || (ARADDR inside {32'h34, 32'h38});
+            ARADDR < 32'h40;
+        }
+      });
+      finish_item(req);
+    end
+  endtask
+endclass

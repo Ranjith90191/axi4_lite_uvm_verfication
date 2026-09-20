@@ -21,7 +21,7 @@ class axi4l_test extends uvm_test;
     axi4l_unaligned_seq unalgn_seq = axi4l_unaligned_seq::type_id::create("unalgn_seq");
     axi4l_concurrent_seq conc_seq  = axi4l_concurrent_seq::type_id::create("conc_seq");
     axi4l_fully_rand rand_seq = axi4l_fully_rand::type_id::create("rand_seq");
-    
+    axi4l_full_rand_seq r_seq = axi4l_full_rand_seq::type_id::create("r_seq");
     phase.raise_objection(this);
     #30;
     
@@ -60,6 +60,10 @@ class axi4l_test extends uvm_test;
     `uvm_info(get_type_name(), "Starting Random Sequence", UVM_LOW)
     rand_seq.start(env.agt.sqr);
     #20000;
+    `uvm_info(get_type_name(), "Starting Random Sequence with address bounds", UVM_LOW)
+    r_seq.start(env.agt.sqr);
+    #20000;
+
     phase.drop_objection(this);
   endtask
 
