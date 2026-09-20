@@ -216,7 +216,7 @@ merge: compile
 	failed_list=""; \
 	for t in "$${tests[@]}"; do \
 		echo -e "$(CYAN)  -> $$t$(NC)"; \
-		./$(SIMV) +UVM_TESTNAME=$$t +UVM_VERBOSITY=UVM_MEDIUM +UVM_NO_RELNOTES $(COV_OPTS) > merge_$$t.log 2>&1; \
+		./$(SIMV) +UVM_TESTNAME=$$t +UVM_VERBOSITY=UVM_MEDIUM +UVM_NO_RELNOTES $(COV_OPTS) -cm_name $$t > merge_$$t.log 2>&1; \
 		st=$$?; \
 		err=$$(grep "UVM_ERROR :" merge_$$t.log | tail -1 | awk -F: '{print $$2}' | xargs); \
 		fatal=$$(grep "UVM_FATAL :" merge_$$t.log | tail -1 | awk -F: '{print $$2}' | xargs); \
