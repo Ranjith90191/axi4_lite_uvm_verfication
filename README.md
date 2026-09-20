@@ -79,7 +79,7 @@ The slave contains separate **Write FSM** (5-state: W_IDLE → W_BOTH → W_ADDR
 
 ## Testbench Architecture
 
-The environment follows standard UVM layering. See [`docs/architecture.md`](docs/architecture.md) for the full block diagram and component descriptions.
+The environment follows standard UVM layering. See [`docs/architecture.md`](docs/architecture.md) for the full block diagram and component descriptions. SVA properties are documented in [`docs/assertion_plan.md`](docs/assertion_plan.md).
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -197,10 +197,26 @@ All sequences run via constrained-random stimulus with UVM factory override supp
 | Functional Coverage | **100%** |
 | Code Coverage (overall) | **85.54%** |
 
-Functional covergroups include: address region coverage (R/W, R/O, W/O, DECERR, unaligned), AXI response encoding (OKAY, SLVERR, DECERR), transaction type (read, write, concurrent), and WSTRB byte-enable combinations.
+Functional covergroups include: address region coverage (R/W, R/O, W/O, DECERR, unaligned), AXI response encoding (OKAY, SLVERR, DECERR), transaction type (read, write, concurrent), and WSTRB byte-enable combinations (all 16 via auto-expanded bins).
 
+> Full coverage plan with bin-level detail: [`docs/coverage_plan.md`](docs/coverage_plan.md)
 > Detailed coverage report: see `coverage/` directory.
 > Remaining 14.46% code coverage gap: tracked in [`docs/verification_plan.md`](docs/verification_plan.md) under Known Gaps.
+
+---
+
+## Documentation
+
+All plans live in `docs/` as CSV files that render natively in GitHub — click any link to view as a formatted table directly in the browser.
+
+| Document | View on GitHub | Description |
+|---|---|---|
+| Verification Plan | [`docs/verification_plan.csv`](docs/verification_plan.csv) | All 25 test cases with stimulus, expected behavior, pass/fail status and remarks |
+| Coverage Plan | [`docs/coverage_plan.csv`](docs/coverage_plan.csv) | All coverpoints, cross bins, sequences that hit each bin, status |
+| Assertion Plan | [`docs/assertion_plan.csv`](docs/assertion_plan.csv) | All 14 SVA properties with trigger conditions, expected behavior, error messages |
+| Architecture | [`docs/architecture.md`](docs/architecture.md) | Testbench block diagram and component descriptions |
+
+> Master editable file (Excel, download only): [`docs/axi4lite_verification_plans.xlsx`](docs/axi4lite_verification_plans.xlsx)
 
 ---
 
