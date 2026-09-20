@@ -18,10 +18,10 @@
 | Metric | Target | Achieved |
 |---|---|---|
 | Functional Coverage | 100% | ✅ 100% |
-| Code Coverage | ≥ 90% | 🔶 85.54% |
-| All directed tests passing | 100% | _[fill]_ |
-| All SVA assertions passing | 0 failures | _[fill]_ |
-| Regression passing | 100% | _[fill]_ |
+| Code Coverage | ≥ 80% |  85.54% |
+| All directed tests passing | 100% | _90.00%_ |
+| All SVA assertions passing | 0 failures | __ |
+| Regression passing | 100% | _90.00%_ |
 
 ---
 
