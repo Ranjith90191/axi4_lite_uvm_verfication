@@ -7,14 +7,7 @@ The verification environment is a fully layered **UVM 1.2** testbench targeting 
 ---
 
 ## Block Diagram
-
-> _Export your `axi4_lite_architecture.drawio` as PNG and place it at `docs/images/tb_architecture.png`, then the embed below will render it._
-
-```
 ![Testbench Architecture](images/tb_architecture.png)
-```
-
----
 
 ## Component Hierarchy
 
