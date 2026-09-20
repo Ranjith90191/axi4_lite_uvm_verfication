@@ -1,97 +1,389 @@
-class axi4l_test extends uvm_test;
-  `uvm_component_utils(axi4l_test)
-  axi4l_env env;
+`include "uvm_macros.svh"
+import uvm_pkg::*;
 
-  function new(string name="axi4l_test", uvm_component parent=null);
+class axi4l_base_test extends uvm_test;
+  `uvm_component_utils(axi4l_base_test)
+  axi4l_env env;
+  function new(string name = "axi4l_base_test", uvm_component parent = null);
     super.new(name, parent);
   endfunction
-
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     env = axi4l_env::type_id::create("env", this);
   endfunction
-
-  virtual task run_phase(uvm_phase phase);
-    axi4l_write_seq seq = axi4l_write_seq::type_id::create("seq");
-    axi4l_read_seq seq1 = axi4l_read_seq::type_id::create("seq1");
-    axi4l_normal_rw_seq normal_seq = axi4l_normal_rw_seq::type_id::create("normal_seq");
-    axi4l_ro_test_seq ro_seq = axi4l_ro_test_seq::type_id::create("ro_seq");
-    axi4l_wo_test_seq wo_seq = axi4l_wo_test_seq::type_id::create("wo_seq");
-    axi4l_decerr_seq decerr_seq = axi4l_decerr_seq::type_id::create("decerr_seq");
-    axi4l_unaligned_seq unalgn_seq = axi4l_unaligned_seq::type_id::create("unalgn_seq");
-    axi4l_concurrent_seq conc_seq  = axi4l_concurrent_seq::type_id::create("conc_seq");
-    axi4l_fully_rand rand_seq = axi4l_fully_rand::type_id::create("rand_seq");
-    axi4l_full_rand_seq r_seq = axi4l_full_rand_seq::type_id::create("r_seq");
-    phase.raise_objection(this);
-    #30;
-    
-    `uvm_info(get_type_name(), "Starting Write only Sequence", UVM_LOW)
-    seq.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting Read only Sequence", UVM_LOW)
-    seq1.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting Normal Sequence", UVM_LOW)
-    normal_seq.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting Read only Sequence", UVM_LOW)
-    ro_seq.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting Write Only Sequence", UVM_LOW)
-    wo_seq.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting DecErr Sequence", UVM_LOW)
-    decerr_seq.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting Unaligned address Sequence", UVM_LOW)
-    unalgn_seq.start(env.agt.sqr);
-    #200000;
-    
-    `uvm_info(get_type_name(), "Starting Concurrent Sequence", UVM_LOW)
-    conc_seq.start(env.agt.sqr);
-    #20000;
-    
-    `uvm_info(get_type_name(), "Starting Random Sequence", UVM_LOW)
-    rand_seq.start(env.agt.sqr);
-    #20000;
-    `uvm_info(get_type_name(), "Starting Random Sequence with address bounds", UVM_LOW)
-    r_seq.start(env.agt.sqr);
-    #20000;
-
-    phase.drop_objection(this);
-  endtask
-
 endclass
 
-class axi4l_write_bug_test extends uvm_test;
-  `uvm_component_utils(axi4l_write_bug_test)
-  axi4l_env env;
-
-  function new(string name="axi4l_write_bug_test", uvm_component parent=null);
+class wr_rw_access_test extends axi4l_base_test;
+  `uvm_component_utils(wr_rw_access_test)
+  function new(string name = "wr_rw_access_test", uvm_component parent = null);
     super.new(name, parent);
   endfunction
-
-  virtual function void build_phase(uvm_phase phase);
-    super.build_phase(phase);
-    env = axi4l_env::type_id::create("env", this);
-  endfunction
-  
   virtual task run_phase(uvm_phase phase);
-  	axi4l_write_bug_seq seq;
-  	axi4l_concurrent_seq seq1;
-  	//seq = axi4l_write_bug_seq::type_id::create("seq");
-  	seq1 = axi4l_concurrent_seq::type_id::create("seq1");
-  	phase.raise_objection(this);
-  	#30;
-  	//seq.start(env.agt.sqr);
-  	seq1.start(env.agt.sqr);
-  	#20000;
-  	phase.drop_objection(this);
+    wr_rw_access_seq seq;
+    phase.raise_objection(this);
+    seq = wr_rw_access_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class wr_wo_access_test extends axi4l_base_test;
+  `uvm_component_utils(wr_wo_access_test)
+  function new(string name = "wr_wo_access_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    wr_wo_access_seq seq;
+    phase.raise_objection(this);
+    seq = wr_wo_access_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class wr_special_addr_test extends axi4l_base_test;
+  `uvm_component_utils(wr_special_addr_test)
+  function new(string name = "wr_special_addr_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    wr_special_addr_seq seq;
+    phase.raise_objection(this);
+    seq = wr_special_addr_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class write_read_only_test extends axi4l_base_test;
+  `uvm_component_utils(write_read_only_test)
+  function new(string name = "write_read_only_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    write_read_only_seq seq;
+    phase.raise_objection(this);
+    seq = write_read_only_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class invalid_write_test extends axi4l_base_test;
+  `uvm_component_utils(invalid_write_test)
+  function new(string name = "invalid_write_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    invalid_write_seq seq;
+    phase.raise_objection(this);
+    seq = invalid_write_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class unaligned_write_test extends axi4l_base_test;
+  `uvm_component_utils(unaligned_write_test)
+  function new(string name = "unaligned_write_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    unaligned_write_seq seq;
+    phase.raise_objection(this);
+    seq = unaligned_write_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class rd_sequence_test extends axi4l_base_test;
+  `uvm_component_utils(rd_sequence_test)
+  function new(string name = "rd_sequence_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    rd_sequence seq;
+    phase.raise_objection(this);
+    seq = rd_sequence::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class rd_ro_access_test extends axi4l_base_test;
+  `uvm_component_utils(rd_ro_access_test)
+  function new(string name = "rd_ro_access_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    rd_ro_access_seq seq;
+    phase.raise_objection(this);
+    seq = rd_ro_access_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class rd_special_addr_test extends axi4l_base_test;
+  `uvm_component_utils(rd_special_addr_test)
+  function new(string name = "rd_special_addr_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    rd_special_addr_seq seq;
+    phase.raise_objection(this);
+    seq = rd_special_addr_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class read_write_only_test extends axi4l_base_test;
+  `uvm_component_utils(read_write_only_test)
+  function new(string name = "read_write_only_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    read_write_only_seq seq;
+    phase.raise_objection(this);
+    seq = read_write_only_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class invalid_read_test extends axi4l_base_test;
+  `uvm_component_utils(invalid_read_test)
+  function new(string name = "invalid_read_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    invalid_read_seq seq;
+    phase.raise_objection(this);
+    seq = invalid_read_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class unaligned_read_test extends axi4l_base_test;
+  `uvm_component_utils(unaligned_read_test)
+  function new(string name = "unaligned_read_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    unaligned_read_seq seq;
+    phase.raise_objection(this);
+    seq = unaligned_read_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class aw_before_w_test extends axi4l_base_test;
+  `uvm_component_utils(aw_before_w_test)
+  function new(string name = "aw_before_w_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    aw_before_w_seq seq;
+    phase.raise_objection(this);
+    seq = aw_before_w_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class aw_addr_retain_test extends axi4l_base_test;
+  `uvm_component_utils(aw_addr_retain_test)
+  function new(string name = "aw_addr_retain_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    aw_addr_retain_seq seq;
+    phase.raise_objection(this);
+    seq = aw_addr_retain_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class w_before_aw_test extends axi4l_base_test;
+  `uvm_component_utils(w_before_aw_test)
+  function new(string name = "w_before_aw_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    w_before_aw_seq seq;
+    phase.raise_objection(this);
+    seq = w_before_aw_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class w_data_retain_test extends axi4l_base_test;
+  `uvm_component_utils(w_data_retain_test)
+  function new(string name = "w_data_retain_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    w_data_retain_seq seq;
+    phase.raise_objection(this);
+    seq = w_data_retain_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class aw_w_same_cycle_test extends axi4l_base_test;
+  `uvm_component_utils(aw_w_same_cycle_test)
+  function new(string name = "aw_w_same_cycle_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    aw_w_same_cycle_seq seq;
+    phase.raise_objection(this);
+    seq = aw_w_same_cycle_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class backpressure_sequence_test extends axi4l_base_test;
+  `uvm_component_utils(backpressure_sequence_test)
+  function new(string name = "backpressure_sequence_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    backpressure_sequence seq;
+    phase.raise_objection(this);
+    seq = backpressure_sequence::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class bp_r_test extends axi4l_base_test;
+  `uvm_component_utils(bp_r_test)
+  function new(string name = "bp_r_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    bp_r_seq seq;
+    phase.raise_objection(this);
+    seq = bp_r_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class simultaneous_read_write_test extends axi4l_base_test;
+  `uvm_component_utils(simultaneous_read_write_test)
+  function new(string name = "simultaneous_read_write_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    simultaneous_read_write_seq seq;
+    phase.raise_objection(this);
+    seq = simultaneous_read_write_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class con_br_independent_test extends axi4l_base_test;
+  `uvm_component_utils(con_br_independent_test)
+  function new(string name = "con_br_independent_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    con_br_independent_seq seq;
+    phase.raise_objection(this);
+    seq = con_br_independent_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #1000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class axi_random_test extends axi4l_base_test;
+  `uvm_component_utils(axi_random_test)
+  function new(string name = "axi_random_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    axi_random_seq seq;
+    phase.raise_objection(this);
+    seq = axi_random_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #20000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class rand_awprot_test extends axi4l_base_test;
+  `uvm_component_utils(rand_awprot_test)
+  function new(string name = "rand_awprot_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    rand_awprot_seq seq;
+    phase.raise_objection(this);
+    seq = rand_awprot_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #5000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class rand_arprot_test extends axi4l_base_test;
+  `uvm_component_utils(rand_arprot_test)
+  function new(string name = "rand_arprot_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    rand_arprot_seq seq;
+    phase.raise_objection(this);
+    seq = rand_arprot_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #5000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class rand_wdata_wstrb_test extends axi4l_base_test;
+  `uvm_component_utils(rand_wdata_wstrb_test)
+  function new(string name = "rand_wdata_wstrb_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    rand_wdata_wstrb_seq seq;
+    phase.raise_objection(this);
+    seq = rand_wdata_wstrb_seq::type_id::create("seq");
+    seq.start(env.agt.sqr);
+    #5000;
+    phase.drop_objection(this);
   endtask
 endclass

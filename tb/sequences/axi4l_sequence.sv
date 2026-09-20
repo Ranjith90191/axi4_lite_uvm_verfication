@@ -1,261 +1,499 @@
-class axi4l_write_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_write_seq)
-  function new(string name="axi4l_write_seq");
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+class wr_rw_access_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(wr_rw_access_seq)
+  function new(string name = "wr_rw_access_seq");
     super.new(name);
   endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (1000) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize()with{txn_sel==2'b01;});
-      finish_item(req);
-    end
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b01;
+      AWADDR      inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0] == 2'b00;
+      WSTRB       != 4'h0;
+    });
+    finish_item(item);
   endtask
 endclass
 
-class axi4l_read_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_read_seq)
-  function new(string name="axi4l_read_seq");
+class wr_wo_access_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(wr_wo_access_seq)
+  function new(string name = "wr_wo_access_seq");
     super.new(name);
   endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (1000) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize()with{txn_sel==2'b10;});
-      finish_item(req);
-    end
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b01;
+      AWADDR      inside {[32'h00000034:32'h00000038]};
+      AWADDR[1:0] == 2'b00;
+      WSTRB       != 4'h0;
+    });
+    finish_item(item);
   endtask
 endclass
 
-class axi4l_normal_rw_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_normal_rw_seq)
-  function new(string name="axi4l_normal_rw_seq"); 
-  	super.new(name); 
+class wr_special_addr_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(wr_special_addr_seq)
+  function new(string name = "wr_special_addr_seq");
+    super.new(name);
   endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel == 2'b01;
+      AWADDR  == 32'h0000003C;
+      WSTRB   != 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
 
-  virtual task body();
-    axi4l_seq_item req;
+class write_read_only_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(write_read_only_seq)
+  function new(string name = "write_read_only_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b01;
+      AWADDR      inside {[32'h00000028:32'h00000030]};
+      AWADDR[1:0] == 2'b00;
+      WSTRB       != 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class invalid_write_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(invalid_write_seq)
+  function new(string name = "invalid_write_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b01;
+      AWADDR      inside {[32'h00000040:32'hFFFFFFFF]};
+      AWADDR[1:0] == 2'b00;
+      WSTRB       != 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class unaligned_write_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(unaligned_write_seq)
+  function new(string name = "unaligned_write_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b01;
+      AWADDR      inside {[32'h00000000:32'h0000003C]};
+      AWADDR[1:0] != 2'b00;
+      WSTRB       != 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class rd_sequence extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(rd_sequence)
+  function new(string name = "rd_sequence");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item wr_item, rd_item;
+    bit [31:0] addr;
+    addr = ($urandom_range(9, 0)) << 2;
+
+    wr_item = axi4l_seq_item::type_id::create("wr_item");
+    start_item(wr_item);
+    assert(wr_item.randomize() with {
+      txn_sel == 2'b01;
+      AWADDR  == addr;
+      WSTRB   == 4'hF;
+    });
+    finish_item(wr_item);
+
+    rd_item = axi4l_seq_item::type_id::create("rd_item");
+    start_item(rd_item);
+    assert(rd_item.randomize() with {
+      txn_sel               == 2'b10;
+      ARADDR                == addr;
+      wait_cfg_vector[11:8] == 4'h8;
+    });
+    finish_item(rd_item);
+  endtask
+endclass
+
+class rd_ro_access_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(rd_ro_access_seq)
+  function new(string name = "rd_ro_access_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b10;
+      ARADDR      inside {[32'h00000028:32'h00000030]};
+      ARADDR[1:0] == 2'b00;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class rd_special_addr_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(rd_special_addr_seq)
+  function new(string name = "rd_special_addr_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel == 2'b10;
+      ARADDR  == 32'h0000003C;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class read_write_only_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(read_write_only_seq)
+  function new(string name = "read_write_only_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b10;
+      ARADDR      inside {[32'h00000034:32'h00000038]};
+      ARADDR[1:0] == 2'b00;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class invalid_read_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(invalid_read_seq)
+  function new(string name = "invalid_read_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b10;
+      ARADDR      inside {[32'h00000040:32'hFFFFFFFF]};
+      ARADDR[1:0] == 2'b00;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class unaligned_read_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(unaligned_read_seq)
+  function new(string name = "unaligned_read_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b10;
+      ARADDR      inside {[32'h00000000:32'h0000003C]};
+      ARADDR[1:0] != 2'b00;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class aw_before_w_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(aw_before_w_seq)
+  function new(string name = "aw_before_w_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel              == 2'b01;
+      AWADDR               inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]          == 2'b00;
+      WSTRB                != 4'h0;
+      wait_cfg_vector[3:0] == 4'h0;
+      wait_cfg_vector[7:4] == 4'h8;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class aw_addr_retain_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(aw_addr_retain_seq)
+  function new(string name = "aw_addr_retain_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel              == 2'b01;
+      AWADDR               inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]          == 2'b00;
+      WSTRB                != 4'h0;
+      wait_cfg_vector[3:0] == 4'h0;
+      wait_cfg_vector[7:4] == 4'hF;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class w_before_aw_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(w_before_aw_seq)
+  function new(string name = "w_before_aw_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel              == 2'b01;
+      AWADDR               inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]          == 2'b00;
+      WSTRB                != 4'h0;
+      wait_cfg_vector[7:4] == 4'h0;
+      wait_cfg_vector[3:0] == 4'h8;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class w_data_retain_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(w_data_retain_seq)
+  function new(string name = "w_data_retain_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel              == 2'b01;
+      AWADDR               inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]          == 2'b00;
+      WSTRB                != 4'h0;
+      wait_cfg_vector[7:4] == 4'h0;
+      wait_cfg_vector[3:0] == 4'hF;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class aw_w_same_cycle_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(aw_w_same_cycle_seq)
+  function new(string name = "aw_w_same_cycle_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel              == 2'b01;
+      AWADDR               inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]          == 2'b00;
+      WSTRB                != 4'h0;
+      wait_cfg_vector[3:0] == 4'h0;
+      wait_cfg_vector[7:4] == 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class backpressure_sequence extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(backpressure_sequence)
+  function new(string name = "backpressure_sequence");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel                == 2'b01;
+      AWADDR                 inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]            == 2'b00;
+      WSTRB                  != 4'h0;
+      wait_cfg_vector[15:12] == 4'hF;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class bp_r_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(bp_r_seq)
+  function new(string name = "bp_r_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel                == 2'b10;
+      ARADDR                 inside {[32'h00000000:32'h00000024]};
+      ARADDR[1:0]            == 2'b00;
+      wait_cfg_vector[19:16] == 4'hF;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class simultaneous_read_write_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(simultaneous_read_write_seq)
+  function new(string name = "simultaneous_read_write_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel     == 2'b11;
+      AWADDR      inside {[32'h00000000:32'h00000024]};
+      ARADDR      inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0] == 2'b00;
+      ARADDR[1:0] == 2'b00;
+      WSTRB       != 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class con_br_independent_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(con_br_independent_seq)
+  function new(string name = "con_br_independent_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    item = axi4l_seq_item::type_id::create("item");
+    start_item(item);
+    assert(item.randomize() with {
+      txn_sel                == 2'b11;
+      AWADDR                 inside {[32'h00000000:32'h00000024]};
+      ARADDR                 inside {[32'h00000000:32'h00000024]};
+      AWADDR[1:0]            == 2'b00;
+      ARADDR[1:0]            == 2'b00;
+      WSTRB                  != 4'h0;
+      wait_cfg_vector[15:12] == 4'hF;
+      wait_cfg_vector[19:16] == 4'h0;
+    });
+    finish_item(item);
+  endtask
+endclass
+
+class axi_random_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(axi_random_seq)
+  function new(string name = "axi_random_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
     repeat (500) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10}; 
-        AWADDR inside {[32'h00:32'h24], 32'h3C};
-        ARADDR inside {[32'h00:32'h24], 32'h3C};
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
+      item = axi4l_seq_item::type_id::create("item");
+      start_item(item);
+      assert(item.randomize() with {
+        txn_sel != 2'b00;
       });
-      finish_item(req);
+      finish_item(item);
     end
   endtask
 endclass
 
-class axi4l_ro_test_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_ro_test_seq)
-  function new(string name="axi4l_ro_test_seq"); 
-  	super.new(name); 
-  endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (300) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10};
-        AWADDR inside {32'h28, 32'h2C, 32'h30};
-        ARADDR inside {32'h28, 32'h2C, 32'h30};
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
-      });
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_wo_test_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_wo_test_seq)
-  function new(string name="axi4l_wo_test_seq"); 
-  	super.new(name); 
-  endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (300) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10};
-        AWADDR inside {32'h34, 32'h38};
-        ARADDR inside {32'h34, 32'h38};
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
-      });
-  
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_decerr_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_decerr_seq)
-  function new(string name="axi4l_decerr_seq"); 
-  	super.new(name); 
-  endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (200) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10};
-        AWADDR inside {[32'h40:32'hFFFF]};
-        ARADDR inside {[32'h40:32'hFFFF]};
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
-      });
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_unaligned_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_unaligned_seq)
-  function new(string name="axi4l_unaligned_seq"); 
-  	super.new(name); 
-  endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (200) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10};
-        AWADDR[1:0] != 2'b00;
-        ARADDR[1:0] != 2'b00;
-      });
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_concurrent_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_concurrent_seq)
-  function new(string name="axi4l_concurrent_seq"); 
-  	super.new(name); 
-  endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (5000) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel == 2'b11;
-        AWADDR == ARADDR;
-        wait_cfg_vector[3:0] == wait_cfg_vector[7:4];
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
-      });
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_fully_rand extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_fully_rand)
-  function new(string name="axi4l_fully_seq"); 
-  	super.new(name); 
-  endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat (5000) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
-      });
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_write_bug_seq extends uvm_sequence #(axi4l_seq_item);
-	`uvm_object_utils(axi4l_write_bug_seq)
-	function new(string name="axi4l_write_bug_seq");
-		super.new(name);
-	endfunction
-	
-	virtual task body();
-    axi4l_seq_item req;
-    
-    repeat(10) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel == 2'b10;  
-        AWADDR == 32'h10;
-        wait_cfg_vector[3:0] == wait_cfg_vector[7:4]; 
-      });
-      finish_item(req);
-      
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel == 2'b10;
-        ARADDR == 32'h10;
-        wait_cfg_vector[3:0] == wait_cfg_vector[7:4]; 
-      });
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class axi4l_full_rand_seq extends uvm_sequence #(axi4l_seq_item);
-  `uvm_object_utils(axi4l_full_rand_seq)
-
-  function new(string name="axi4l_full_rand_seq");
+class rand_awprot_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(rand_awprot_seq)
+  function new(string name = "rand_awprot_seq");
     super.new(name);
   endfunction
-
-  virtual task body();
-    axi4l_seq_item req;
-    repeat(3000) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10};
-        AWADDR inside {[32'h00:32'h24]};
-        ARADDR inside {[32'h00:32'h24]};
-        AWADDR[1:0] == 2'b00;
-        ARADDR[1:0] == 2'b00;
-        WSTRB inside {4'b1111, 4'b1010, 4'b0101, 4'b0000, 4'b1100, 4'b0011};
+  task body();
+    axi4l_seq_item item;
+    repeat (100) begin
+      item = axi4l_seq_item::type_id::create("item");
+      start_item(item);
+      assert(item.randomize() with {
+        txn_sel == 2'b01;
+        AWADDR  inside {[32'h00000000:32'hFFFFFFFF]};
+        WSTRB   != 4'h0;
       });
-      finish_item(req);
+      finish_item(item);
     end
-    repeat(1000) begin
-      req = axi4l_seq_item::type_id::create("req");
-      start_item(req);
-      assert(req.randomize() with {
-        txn_sel inside {2'b01, 2'b10};
-        if (txn_sel == 2'b01) {
-            (AWADDR[1:0] != 2'b00) || (AWADDR inside {32'h28, 32'h2C, 32'h30});
-            AWADDR < 32'h40;
-        } else {
-            (ARADDR[1:0] != 2'b00) || (ARADDR inside {32'h34, 32'h38});
-            ARADDR < 32'h40;
-        }
+  endtask
+endclass
+
+class rand_arprot_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(rand_arprot_seq)
+  function new(string name = "rand_arprot_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    repeat (100) begin
+      item = axi4l_seq_item::type_id::create("item");
+      start_item(item);
+      assert(item.randomize() with {
+        txn_sel == 2'b10;
+        ARADDR  inside {[32'h00000000:32'hFFFFFFFF]};
       });
-      finish_item(req);
+      finish_item(item);
+    end
+  endtask
+endclass
+
+class rand_wdata_wstrb_seq extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(rand_wdata_wstrb_seq)
+  function new(string name = "rand_wdata_wstrb_seq");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    repeat (100) begin
+      item = axi4l_seq_item::type_id::create("item");
+      start_item(item);
+      assert(item.randomize() with {
+        txn_sel     == 2'b01;
+        AWADDR      inside {[32'h00000000:32'h00000024]};
+        AWADDR[1:0] == 2'b00;
+      });
+      finish_item(item);
     end
   endtask
 endclass
