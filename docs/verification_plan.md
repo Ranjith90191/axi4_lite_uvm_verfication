@@ -20,7 +20,7 @@
 | Functional Coverage | 100% | ✅ 100% |
 | Code Coverage | ≥ 80% |  85.54% |
 | All directed tests passing | 100% | _90.00%_ |
-| All SVA assertions passing | 0 failures | __ |
+| All SVA assertions passing | 0 failures | _100%_ |
 | Regression passing | 100% | _90.00%_ |
 
 ---
