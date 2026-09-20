@@ -6,6 +6,11 @@
 **Methodology:** UVM 1.2
 **Author:** Ranjithraviraj
 
+**Related Documents:**
+- Assertion Plan: [`docs/assertion_plan.md`](assertion_plan.md)
+- Coverage Plan: [`docs/coverage_plan.md`](coverage_plan.md)
+- Architecture: [`docs/architecture.md`](architecture.md)
+
 ---
 
 ## Verification Closure Criteria
