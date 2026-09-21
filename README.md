@@ -192,7 +192,7 @@ All plans live in `docs/` as CSV files that render natively in GitHub — click 
 | Assertion Plan | [`docs/assertion_plan.csv`](docs/assertion_plan.csv) | All 14 SVA properties with trigger conditions, expected behavior, error messages |
 | Architecture | [`docs/architecture.md`](docs/architecture.md) | Testbench block diagram and component descriptions |
 
-> Master editable file (Excel, download only): [`docs/axi4lite_verification_plans.xlsx`](docs/full_plan.xlsx)
+> Master editable file (Excel, download only): [`docs/full_plan.xlsx`](docs/full_plan.xlsx)
 
 ---
 
