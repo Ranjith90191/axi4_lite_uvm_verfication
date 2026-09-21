@@ -6,7 +6,8 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
   axi4l_seq_item aw_q[$], w_q[$], ar_q[$], b_q[$], r_q[$];
 
   bit wr_busy;
-  bit rd_busy; 
+  bit rd_busy;
+  bit not_done;
 
   function new(string name="axi4l_driver", uvm_component parent=null);
     super.new(name, parent);
@@ -38,6 +39,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
     forever begin
       axi4l_seq_item req;
       seq_item_port.get_next_item(req);
+      not_done = 1;
       if (req.txn_sel[`TXN_BIT_WRITE]) begin
         wait (wr_busy == 0);
         wr_busy = 1;
@@ -51,6 +53,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
       end
 
       `uvm_info("DISPATCH_TRACE", $sformatf("Queued item, txn_sel=%0b", req.txn_sel), UVM_FULL)
+      not_done = 0;
       seq_item_port.item_done();
     end
   endtask
@@ -160,7 +163,10 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
   virtual task reset_watcher();
 	  forever begin
 	  @(negedge vif.ARESETn);
-	  seq_item_port.item_done();
+	  if(not_done)begin
+	  	seq_item_port.item_done();
+	  	not_done = 0;
+	  end
 	  `uvm_info("DRIVER", "Mid sim reset detected killing all the threads", UVM_FULL)
 	  disable dispatch;
 	  disable write_manager;
