@@ -5,7 +5,7 @@
 ![Language](https://img.shields.io/badge/Language-SystemVerilog%20%7C%20UVM-blue)
 ![Simulator](https://img.shields.io/badge/Simulator-Synopsys%20VCS-orange)
 ![Functional Coverage](https://img.shields.io/badge/Functional%20Coverage-100%25-brightgreen)
-![Code Coverage](https://img.shields.io/badge/Code%20Coverage-85.54%25-yellow)
+![Code Coverage](https://img.shields.io/badge/Code%20Coverage-94.03%25-green)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
