@@ -11,9 +11,15 @@ module tb_top;
   end
 
   initial begin
+  	repeat(300)begin
   	ARESETn = 0;
-  	#5; 
-    ARESETn = 1; 
+  	#500; 
+    ARESETn = 1;
+    #250;
+    ARESETn = 0;
+    #400;
+    ARESETn = 1;
+  	end
   end
 
   axi4l_if vif(
