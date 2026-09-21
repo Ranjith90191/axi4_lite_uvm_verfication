@@ -94,10 +94,17 @@ tests:
 # make simulate 3                    -> runs the 3rd test in the discovered list, UVM_MEDIUM
 # make simulate 3 high               -> runs 3rd test at UVM_HIGH
 # make simulate alu_base_test medium -> runs by name directly, still works as before
+#
+# Every invocation draws a fresh random seed (+ntb_random_seed) from
+# /dev/urandom, so back-to-back runs of the same test exercise different
+# stimulus. The seed used is always printed in the pass/fail banner --
+# copy it back in with `+ntb_random_seed=<N>` on the simv command line
+# (outside this makefile) if you need to reproduce a specific run.
 simulate: compile
 	@tests=($(TESTS)); \
 	arg1=$(word 1,$(SIM_ARGS)); \
 	arg2=$(word 2,$(SIM_ARGS)); \
+	seed=$$(od -An -N4 -tu4 < /dev/urandom | tr -d ' '); \
 	if [ -z "$$arg1" ]; then \
 		if [ $${#tests[@]} -eq 0 ]; then \
 			echo "No test classes found (looked for 'class X extends *test*' in *.sv/*.svh)."; \
@@ -141,11 +148,11 @@ simulate: compile
 		*)      verb=$$verbraw ;; \
 	esac; \
 	if [ -z "$$test" ]; then \
-		echo -e "$(CYAN)Running ./$(SIMV)$(NC)"; \
-		./$(SIMV) +UVM_NO_RELNOTES $(COV_OPTS) 2>&1 | tee sim.log; \
+		echo -e "$(CYAN)Running ./$(SIMV) (seed=$$seed)$(NC)"; \
+		./$(SIMV) +UVM_NO_RELNOTES +ntb_random_seed=$$seed $(COV_OPTS) 2>&1 | tee sim.log; \
 	else \
-		echo -e "$(CYAN)Running ./$(SIMV) +UVM_TESTNAME=$$test +UVM_VERBOSITY=$$verb$(NC)"; \
-		./$(SIMV) +UVM_TESTNAME=$$test +UVM_VERBOSITY=$$verb +UVM_NO_RELNOTES $(COV_OPTS) 2>&1 | tee sim.log; \
+		echo -e "$(CYAN)Running ./$(SIMV) +UVM_TESTNAME=$$test +UVM_VERBOSITY=$$verb (seed=$$seed)$(NC)"; \
+		./$(SIMV) +UVM_TESTNAME=$$test +UVM_VERBOSITY=$$verb +UVM_NO_RELNOTES +ntb_random_seed=$$seed $(COV_OPTS) 2>&1 | tee sim.log; \
 	fi; \
 	status=$${PIPESTATUS[0]}; \
 	border=$$(printf '%.0s-' {1..50}); \
@@ -159,6 +166,7 @@ simulate: compile
 		echo -e "$(RED)$(BOLD)  SIMULATION FAILED $${test:+: $$test}$(NC)"; \
 		echo -e "$(RED)$$border$(NC)"; \
 		echo -e "  UVM_INFO:$${info:-?}  UVM_WARNING:$${warn:-?}  UVM_ERROR:$${err:-?}  UVM_FATAL:$${fatal:-?}"; \
+		echo -e "  Seed: $$seed"; \
 		echo -e "$(RED)$$border$(NC)"; \
 		exit 1; \
 	else \
@@ -167,6 +175,7 @@ simulate: compile
 		echo -e "$(GREEN)$$border$(NC)"; \
 		echo -e "  UVM_INFO:$${info:-0}  UVM_WARNING:$${warn:-0}  UVM_ERROR:$${err:-0}  UVM_FATAL:$${fatal:-0}"; \
 		echo -e "  $$simtime"; \
+		echo -e "  Seed: $$seed"; \
 		echo -e "$(GREEN)$$border$(NC)"; \
 	fi
 
@@ -203,6 +212,8 @@ coverage:
 # VCS automatically appends each run as a separate test entry in one db --
 # giving each test its own -cm_dir orphans the design database and makes
 # urg unable to score it ("Design not yet loaded"), so don't do that.
+# Each test also gets its own fresh random seed (printed in the summary,
+# and recorded in merge_seeds.log for later reference/reproduction).
 merge: compile
 	@tests=($(TESTS)); \
 	if [ $${#tests[@]} -eq 0 ]; then \
@@ -211,17 +222,20 @@ merge: compile
 	fi; \
 	border=$$(printf '%.0s-' {1..50}); \
 	rm -rf cov_report_merged; \
+	: > merge_seeds.log; \
 	echo -e "$(CYAN)Running $${#tests[@]} tests into shared coverage db $(COV_DIR).vdb...$(NC)"; \
 	pass=0; fail=0; \
 	failed_list=""; \
 	for t in "$${tests[@]}"; do \
-		echo -e "$(CYAN)  -> $$t$(NC)"; \
-		./$(SIMV) +UVM_TESTNAME=$$t +UVM_VERBOSITY=UVM_MEDIUM +UVM_NO_RELNOTES $(COV_OPTS) -cm_name $$t > merge_$$t.log 2>&1; \
+		seed=$$(od -An -N4 -tu4 < /dev/urandom | tr -d ' '); \
+		echo "$$t $$seed" >> merge_seeds.log; \
+		echo -e "$(CYAN)  -> $$t (seed=$$seed)$(NC)"; \
+		./$(SIMV) +UVM_TESTNAME=$$t +UVM_VERBOSITY=UVM_MEDIUM +UVM_NO_RELNOTES +ntb_random_seed=$$seed $(COV_OPTS) -cm_name $$t > merge_$$t.log 2>&1; \
 		st=$$?; \
 		err=$$(grep "UVM_ERROR :" merge_$$t.log | tail -1 | awk -F: '{print $$2}' | xargs); \
 		fatal=$$(grep "UVM_FATAL :" merge_$$t.log | tail -1 | awk -F: '{print $$2}' | xargs); \
 		if [ $$st -ne 0 ] || [ "$${err:-0}" -gt 0 ] 2>/dev/null || [ "$${fatal:-0}" -gt 0 ] 2>/dev/null; then \
-			echo -e "     $(RED)FAILED$(NC) (see merge_$$t.log)"; \
+			echo -e "     $(RED)FAILED$(NC) (see merge_$$t.log, seed=$$seed)"; \
 			fail=$$((fail+1)); \
 			failed_list="$$failed_list $$t"; \
 		else \
@@ -243,6 +257,7 @@ merge: compile
 	if [ -n "$$failed_list" ]; then \
 		echo -e "  Failed tests:$$failed_list"; \
 	fi; \
+	echo -e "  Seeds recorded in merge_seeds.log"; \
 	txt=$$(find cov_report_merged -maxdepth 1 -iname '*.txt' 2>/dev/null | head -1); \
 	if [ -n "$$txt" ]; then \
 		echo -e "$(GREEN)$$border$(NC)"; \
@@ -255,15 +270,15 @@ merge: compile
 # ---- CLEAN ------------------------------------------------------------
 clean:
 	rm -rf simv simv.daidir csrc *.log *.vpd *.fsdb ucli.key DVEfiles vc_hdrs.h \
-		$(COV_DIR).vdb cov_report urgReport cov_report_merged
+		$(COV_DIR).vdb cov_report urgReport cov_report_merged merge_seeds.log
 
 help:
 	@echo "make compile                    - compile w/ coverage (recompiles if any .sv/.svh in cwd changed)"
 	@echo "make tests                      - list discovered test classes with serial numbers"
-	@echo "make simulate                   - list tests, prompt for number/name + verbosity"
-	@echo "make simulate <N>               - run test #N from the discovered list, UVM_MEDIUM default"
+	@echo "make simulate                   - list tests, prompt for number/name + verbosity (random seed each run)"
+	@echo "make simulate <N>               - run test #N from the discovered list, UVM_MEDIUM default, random seed"
 	@echo "make simulate <N> <verbosity>   - e.g. make simulate 3 high"
 	@echo "make simulate <name> <verbosity>- e.g. make simulate alu_base_test medium"
 	@echo "make coverage                   - generate coverage report from last sim run"
-	@echo "make merge                      - run every discovered test and merge their coverage into one report"
+	@echo "make merge                      - run every discovered test (each with its own random seed) and merge coverage"
 	@echo "make clean                      - remove compile/sim/coverage artifacts"

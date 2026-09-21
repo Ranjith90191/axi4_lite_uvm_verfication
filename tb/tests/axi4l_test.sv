@@ -387,3 +387,22 @@ class rand_wdata_wstrb_test extends axi4l_base_test;
     phase.drop_objection(this);
   endtask
 endclass
+
+class bug_03_reproduce extends axi4l_base_test;
+  `uvm_component_utils(bug_03_reproduce)
+  function new(string name = "bug_03_reproduce",uvm_component parent = null);
+    super.name(name,parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    dec_err seq1;
+    read_all_after_dec_err seq2;
+    seq1 = dec_err::type_id::create("seq1");
+    seq2 = read_all_after_dec_err::type_id::create("seq2");
+    phase.raise_objection(this);
+      seq1.start(env.agt.sqr);
+      #5000;
+      seq2.start(env.agt.sqr);
+      #5000;
+    phase.drop_objection(this);
+  endtask
+endclass

@@ -497,3 +497,43 @@ class rand_wdata_wstrb_seq extends uvm_sequence #(axi4l_seq_item);
     end
   endtask
 endclass
+
+class dec_err extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(dec_err)
+  function new(string name = "dec_err");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    repeat (100) begin
+      item = axi4l_seq_item::type_id::create("item");
+      start_item(item);
+      assert(item.randomize() with {
+        txn_sel == 2'b01;
+        AWADDR > 63;
+        AWADDR[1:0] == 2'b00;
+      });
+      finish_item(item);
+    end
+  endtask
+endclass
+
+class read_all_after_dec_err extends uvm_sequence #(axi4l_seq_item);
+  `uvm_object_utils(read_all_after_dec_err)
+  function new(string name = "read_all_after_dec_err");
+    super.new(name);
+  endfunction
+  task body();
+    axi4l_seq_item item;
+    for(int i=0;i<=30;i++)begin
+      item = axi4l_seq_item::type_id::create("item");
+      start_item(item);
+      assert(item.randomize() with {
+        txn_sel == 2'b10;
+        AWADDR[5:2]==i;
+        AWADDR[1:0] == 2'b00;
+      });
+      finish_item(item);
+    end
+  endtask
+endclass
