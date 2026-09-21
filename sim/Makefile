@@ -10,7 +10,7 @@ SIMV     := simv
 VCS      := vcs
 
 COV_DIR  := cov_work
-COV_OPTS := -cm line+cond+fsm+branch+tgl -cm_dir $(COV_DIR)
+COV_OPTS := -cm line+cond+fsm+branch+tgl+assert -cm_dir $(COV_DIR)
 
 VCS_OPTS := -sverilog -timescale=1ns/1ps -ntb_opts uvm-1.2 -full64 -f $(FILELIST) $(COV_OPTS)
 
