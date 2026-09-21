@@ -179,8 +179,6 @@ Functional covergroups include: address region coverage (R/W, R/O, W/O, DECERR, 
 
 > Full coverage plan with bin-level detail: [`docs/coverage_plan.md`](docs/coverage_plan.md)
 > Detailed coverage report: see `coverage/` directory.
-> Remaining 14.46% code coverage gap: tracked in [`docs/verification_plan.md`](docs/verification_plan.md) under Known Gaps.
-
 ---
 
 ## Documentation
