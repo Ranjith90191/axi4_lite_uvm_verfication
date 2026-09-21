@@ -13,11 +13,11 @@
 | Coverage Type | Target | Achieved |
 |---|---|---|
 | Functional Coverage (total) | 100% | ✅ 100% |
-| Code Coverage (line) | ≥ 80% |  97.37% |
-| Code Coverage (condition) | ≥ 80% | _80.00%_ |
+| Code Coverage (line) | ≥ 80% |  98.25% |
+| Code Coverage (condition) | ≥ 80% | _82.00%_ |
 | Code Coverage (FSM) | 100% | _100%_ |
-| Code Coverage (branch) | ≥ 90% | _89.66%_ |
-| Code Coverage (toggle) | ≥ 80% | _86.25%_ |
+| Code Coverage (branch) | ≥ 90% | _91.38%_ |
+| Code Coverage (toggle) | ≥ 80% | _92.58%_ |
 
 > Code coverage collected via VCS `-cm line+cond+fsm+branch+tgl+assert`. Report in `cov_report_merged/`.
 
