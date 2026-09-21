@@ -19,7 +19,8 @@ class axi4l_monitor extends uvm_monitor;
     wait (vif.ARESETn === 1'b1);
     fork 
       collect_writes(); 
-      collect_reads(); 
+      collect_reads();
+      reset_watcher(); 
     join
   endtask
 
@@ -63,4 +64,20 @@ class axi4l_monitor extends uvm_monitor;
       ap.write(txn);
     end
   endtask
+  
+  virtual task reset_watcher();
+	  forever begin
+	  @(negedge vif.ARESETn);
+	  `uvm_info("MON", "Mid sim reset detected killing all the threads", UVM_FULL)
+	  disable collect_reads;
+	  disable collect_writes;
+	  @(posedge vif.ARESETn);
+		`uvm_info("MON", "Mid sim reset deasserted starting all the threads", UVM_FULL)
+	  fork
+		 collect_reads();
+		 collect_writes(); 
+	  join_none
+  	end
+  endtask
+  
 endclass

@@ -5,6 +5,9 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
   axi4l_seq_item wr_req_q[$], rd_req_q[$];
   axi4l_seq_item aw_q[$], w_q[$], ar_q[$], b_q[$], r_q[$];
 
+  bit wr_busy;
+  bit rd_busy; 
+
   function new(string name="axi4l_driver", uvm_component parent=null);
     super.new(name, parent);
   endfunction
@@ -27,6 +30,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
       ar_thread();
       b_thread();
       r_thread();
+      reset_watcher();
     join
   endtask
 
@@ -34,8 +38,18 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
     forever begin
       axi4l_seq_item req;
       seq_item_port.get_next_item(req);
-      if (req.txn_sel[`TXN_BIT_WRITE]) wr_req_q.push_back(req);
-      if (req.txn_sel[`TXN_BIT_READ])  rd_req_q.push_back(req);
+      if (req.txn_sel[`TXN_BIT_WRITE]) begin
+        wait (wr_busy == 0);
+        wr_busy = 1;
+        wr_req_q.push_back(req);
+      end
+
+      if (req.txn_sel[`TXN_BIT_READ]) begin
+        wait (rd_busy == 0);
+        rd_busy = 1;
+        rd_req_q.push_back(req);
+      end
+
       `uvm_info("DISPATCH_TRACE", $sformatf("Queued item, txn_sel=%0b", req.txn_sel), UVM_FULL)
       seq_item_port.item_done();
     end
@@ -114,6 +128,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
       vif.drv_cb.BREADY <= 1;
       do @(vif.drv_cb); while (!vif.drv_cb.BVALID);
       vif.drv_cb.BREADY <= 0;
+      wr_busy = 0; 
       `uvm_info("B_TRACE", "B handshake done", UVM_FULL)
     end
   endtask
@@ -127,6 +142,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
       vif.drv_cb.RREADY <= 1;
       do @(vif.drv_cb); while (!vif.drv_cb.RVALID);
       vif.drv_cb.RREADY <= 0;
+      rd_busy = 0; 
       `uvm_info("R_TRACE", "R handshake done", UVM_FULL)
     end
   endtask
@@ -137,5 +153,39 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
     vif.drv_cb.ARVALID <= 0;
     vif.drv_cb.BREADY  <= 0;
     vif.drv_cb.RREADY  <= 0;
+    wr_busy = 0;
+    rd_busy = 0;
+  endtask
+  
+  virtual task reset_watcher();
+	  forever begin
+	  @(negedge vif.ARESETn);
+	  seq_item_port.item_done();
+	  `uvm_info("DRIVER", "Mid sim reset detected killing all the threads", UVM_FULL)
+	  disable dispatch;
+	  disable write_manager;
+	  disable read_manager;
+	  disable aw_thread;
+	  disable w_thread;
+	  disable b_thread;
+	  disable ar_thread;
+	  disable r_thread;
+	  wr_req_q.delete;rd_req_q.delete;
+	  aw_q.delete; w_q.delete; ar_q.delete; b_q.delete;r_q.delete;
+	  wr_busy=0;
+	  rd_busy=0;
+	  @(posedge vif.ARESETn);
+		`uvm_info("DRIVER", "Mid sim reset deasserted starting all the threads", UVM_FULL)
+	  fork
+		  dispatch();
+		  write_manager();
+		  read_manager();
+		  aw_thread();
+		  w_thread();
+		  ar_thread();
+		  b_thread();
+		  r_thread();
+	  join_none
+  end
   endtask
 endclass

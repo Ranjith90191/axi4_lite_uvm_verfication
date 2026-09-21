@@ -391,7 +391,7 @@ endclass
 class bug_03_reproduce extends axi4l_base_test;
   `uvm_component_utils(bug_03_reproduce)
   function new(string name = "bug_03_reproduce",uvm_component parent = null);
-    super.name(name,parent);
+    super.new(name,parent);
   endfunction
   virtual task run_phase(uvm_phase phase);
     dec_err seq1;
@@ -403,6 +403,20 @@ class bug_03_reproduce extends axi4l_base_test;
       #5000;
       seq2.start(env.agt.sqr);
       #5000;
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class decode_err extends axi4l_base_test;
+  `uvm_component_utils(decode_err)
+  function new(string name = "decode_err",uvm_component parent = null);
+    super.new(name,parent);
+  endfunction
+  virtual task run_phase(uvm_phase phase);
+    dec_err seq1;
+    seq1 = dec_err::type_id::create("seq1");
+    phase.raise_objection(this);
+      seq1.start(env.agt.sqr);
     phase.drop_objection(this);
   endtask
 endclass

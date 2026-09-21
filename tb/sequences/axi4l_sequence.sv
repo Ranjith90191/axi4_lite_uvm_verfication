@@ -1,6 +1,3 @@
-`include "uvm_macros.svh"
-import uvm_pkg::*;
-
 class wr_rw_access_seq extends uvm_sequence #(axi4l_seq_item);
   `uvm_object_utils(wr_rw_access_seq)
   function new(string name = "wr_rw_access_seq");
@@ -510,8 +507,9 @@ class dec_err extends uvm_sequence #(axi4l_seq_item);
       start_item(item);
       assert(item.randomize() with {
         txn_sel == 2'b01;
-        AWADDR > 63;
+        AWADDR[6:2] > 5'b01111;
         AWADDR[1:0] == 2'b00;
+        wait_cfg_vector[3:0] == wait_cfg_vector[7:4]+2'b10;
       });
       finish_item(item);
     end
@@ -525,15 +523,21 @@ class read_all_after_dec_err extends uvm_sequence #(axi4l_seq_item);
   endfunction
   task body();
     axi4l_seq_item item;
-    for(int i=0;i<=30;i++)begin
+    for(int i=0;i<=300;i++)begin
+      int value=i[4:0];
       item = axi4l_seq_item::type_id::create("item");
       start_item(item);
       assert(item.randomize() with {
         txn_sel == 2'b10;
-        AWADDR[5:2]==i;
         AWADDR[1:0] == 2'b00;
+        ARADDR[1:0] == 2'b00;
+        ARADDR[6:2] == value;
       });
       finish_item(item);
     end
   endtask
 endclass
+
+
+
+

@@ -11,7 +11,7 @@ module tb_top;
   end
 
   initial begin
-  	repeat(300)begin
+  	repeat(400)begin
   	ARESETn = 0;
   	#500; 
     ARESETn = 1;
