@@ -179,8 +179,6 @@ Functional covergroups include: address region coverage (R/W, R/O, W/O, DECERR, 
 
 > Full coverage plan with bin-level detail: [`docs/coverage_plan.md`](docs/coverage_plan.md)
 > Detailed coverage report: see `coverage/` directory.
-> Remaining 14.46% code coverage gap: tracked in [`docs/verification_plan.md`](docs/verification_plan.md) under Known Gaps.
-
 ---
 
 ## Documentation
@@ -201,16 +199,6 @@ All plans live in `docs/` as CSV files that render natively in GitHub — click 
 ## Bug Tracking
 
 All bugs found during verification are logged and tracked in [GitHub Issues](../../issues) with severity, root cause, and fix status labels.
-
-| ID | Description | Severity | Status | Root Cause |
-|---|---|---|---|---|
-| [BUG-001](../../issues/1) | _[Placeholder — fill from your actual findings]_ | High | Open | RTL |
-| [BUG-002](../../issues/2) | _[Placeholder]_ | Medium | Fixed | RTL |
-
-> Bug log format follows: Severity / Priority / Test that exposed it / Expected vs Actual / Root Cause / Fix commit.
-> Bugs found via `axi4l_write_bug_seq` and regression runs on `axi4_lite_slave_real.sv`.
-
----
 
 ## How to Run
 
