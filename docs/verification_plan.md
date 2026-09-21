@@ -8,6 +8,7 @@
 - Assertion Plan: [`docs/assertion_plan.md`](assertion_plan.md)
 - Coverage Plan: [`docs/coverage_plan.md`](coverage_plan.md)
 - Architecture: [`docs/architecture.md`](architecture.md)
+- Architecture: [`docs/full_plan.xlsx`](full_plan.xlsx)
 ---
 ## Verification Closure Criteria
 
