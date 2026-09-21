@@ -81,28 +81,6 @@ The slave contains separate **Write FSM** (5-state: W_IDLE → W_BOTH → W_ADDR
 
 The environment follows standard UVM layering. See [`docs/architecture.md`](docs/architecture.md) for the full block diagram and component descriptions. SVA properties are documented in [`docs/assertion_plan.md`](docs/assertion_plan.md).
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      UVM Test                           │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │                  UVM Environment                  │  │
-│  │  ┌──────────────────┐  ┌────────────────────────┐ │  │
-│  │  │   AXI4L Agent    │  │      Scoreboard        │ │  │
-│  │  │  ┌────────────┐  │  │  (Ref Model Checker)   │ │  │
-│  │  │  │  Sequencer │  │  └────────────────────────┘ │  │
-│  │  │  ├────────────┤  │  ┌────────────────────────┐ │  │
-│  │  │  │   Driver   │  │  │  Functional Coverage   │ │  │
-│  │  │  ├────────────┤  │  └────────────────────────┘ │  │
-│  │  │  │  Monitor   │  │                             │  │
-│  │  │  └────────────┘  │                             │  │
-│  │  └──────────────────┘                             │  │
-│  └───────────────────────────────────────────────────┘  │
-│              AXI4L Interface (SVA Bound)                 │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │              DUT: axi4_lite_slave_real.sv           │ │
-│  └─────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
-```
 
 ### Key Components
 
