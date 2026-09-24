@@ -269,7 +269,7 @@ merge: compile
 
 # ---- CLEAN ------------------------------------------------------------
 clean:
-	rm -rf simv simv.daidir csrc *.log *.vpd *.fsdb ucli.key DVEfiles vc_hdrs.h \
+	rm -rf simv .fsm.sch.verilog.xml simv.daidir csrc *.log *.vpd *.fsdb ucli.key DVEfiles vc_hdrs.h \
 		$(COV_DIR).vdb cov_report urgReport cov_report_merged merge_seeds.log
 
 help:
