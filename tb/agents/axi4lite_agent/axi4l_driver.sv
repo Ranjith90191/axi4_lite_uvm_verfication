@@ -89,6 +89,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
       vif.drv_cb.AWVALID <= 1;
       do @(vif.drv_cb); while (!vif.drv_cb.AWREADY);
       vif.drv_cb.AWVALID <= 0;
+      //vif.drv_cb.AWADDR <=80000;
       `uvm_info("AW_TRACE", "AW handshake done", UVM_FULL)
     end
   endtask
@@ -102,6 +103,7 @@ class axi4l_driver extends uvm_driver #(axi4l_seq_item);
       vif.drv_cb.WDATA  <= r.DATA;
       vif.drv_cb.WSTRB  <= r.WSTRB;
       vif.drv_cb.WVALID <= 1;
+      //vif.drv_cb.WDATA <= 1234;
       do @(vif.drv_cb); while (!vif.drv_cb.WREADY);
       vif.drv_cb.WVALID <= 0;
     end

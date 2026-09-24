@@ -1,6 +1,3 @@
-`include "uvm_macros.svh"
-import uvm_pkg::*;
-
 class axi4l_base_test extends uvm_test;
   `uvm_component_utils(axi4l_base_test)
   axi4l_env env;
@@ -415,6 +412,20 @@ class decode_err extends axi4l_base_test;
   virtual task run_phase(uvm_phase phase);
     dec_err seq1;
     seq1 = dec_err::type_id::create("seq1");
+    phase.raise_objection(this);
+      seq1.start(env.agt.sqr);
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class write_only_test extends axi4l_base_test;
+	`uvm_component_utils(write_only_test)
+	function new(string name = "write_only_test",uvm_component parent = null);
+		super.new(name,parent);
+	endfunction
+	virtual task run_phase(uvm_phase phase);
+    write_only seq1;
+    seq1 = write_only::type_id::create("seq1");
     phase.raise_objection(this);
       seq1.start(env.agt.sqr);
     phase.drop_objection(this);

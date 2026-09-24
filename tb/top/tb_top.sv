@@ -19,7 +19,7 @@ module tb_top;
     ARESETn = 0;
     #400;
     ARESETn = 1;
-  	end
+  	end	
   end
 
   axi4l_if vif(

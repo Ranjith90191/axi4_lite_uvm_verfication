@@ -502,7 +502,7 @@ class dec_err extends uvm_sequence #(axi4l_seq_item);
   endfunction
   task body();
     axi4l_seq_item item;
-    repeat (100) begin
+    repeat (1000) begin
       item = axi4l_seq_item::type_id::create("item");
       start_item(item);
       assert(item.randomize() with {
@@ -538,6 +538,23 @@ class read_all_after_dec_err extends uvm_sequence #(axi4l_seq_item);
   endtask
 endclass
 
-
+class write_only extends uvm_sequence #(axi4l_seq_item);
+	`uvm_object_utils(write_only)
+	function new(string name = "write_only");
+		super.new(name);
+	endfunction
+	task body();
+	axi4l_seq_item item;
+	repeat(1000)begin
+		item = axi4l_seq_item::type_id::create("item");
+      	start_item(item);
+      	assert(item.randomize() with {
+      		txn_sel == 2'b01;
+      		AWADDR[31:0] == 4; 
+      	});
+      	finish_item(item);
+	end
+	endtask
+endclass
 
 
